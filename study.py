@@ -16,22 +16,72 @@ def get_soup_from_webpage(url, header):
     return soup
 
 
+def main_page_url_generator(test='off'):
+    '''
+    翻页系统，生成留园主页第一页到第十八页的地址
+    '''
+    article_page_url = []
+    main_page = 'https://www.cool18.com/bbs4/index.php?app=forum&act=gold'  # 禁忌书屋首页
+    article_page_url.append(main_page)
+    for page in range(2, 19):
+        newpage = "".join([main_page, '&p=', str(page)])  # 第2页到第18页的地址
+        if test == 'on':
+            print(newpage)  # 测试用
+        article_page_url.append(newpage)
+    return article_page_url
+
+
+def get_articles(url, header, test='off'):
+    '''
+    拿到所有的文章的列表
+
+    返回包含200篇文章的列表
+    '''
+    article_list = []
+    if test == 'on':
+        print("拿到所有的文章的列表")  # 测试用
+    soup = get_soup_from_webpage(url, header)
+    soup.table.decompose()  # 留园首页
+    soup.table.decompose()  # 类别 都市
+    table = soup.find('table')
+    if test == 'on':
+        print(table)  # 测试用
+    for a in table.find_all('a'):
+        href = a.get('href')
+        if test == 'on':
+            print(href)  # 测试用
+        href = href.replace('&amp;', '&')
+        if 'http' not in href:
+            url_with_https = "".join(
+                ['https://www.cool18.com/bbs4/', href])
+            article_list.append(url_with_https)
+        else:
+            article_list.append(href)
+    return article_list
+    
+
 def find_title(soup):  # 寻找文章的标题
-    title = soup.title.get_text()
-    title = title.strip()
-    title = title.replace(' - cool18.com 书库', '')
-    title = title.replace(' - cool18.com', '')
-    title = title.replace('\\', '_')
-    title = title.replace('/', '_')
-    title = title.replace(':', '_')
-    title = title.replace('*', '_')
-    title = title.replace('?', '_')
-    title = title.replace('"', '_')
-    title = title.replace('<', '_')
-    title = title.replace('>', '_')
-    title = title.replace('|', '_')
-    title = title.replace('\t', '_')
-    return title
+    title_may_none = soup.title
+    if title_may_none:
+        title = title_may_none.get_text()
+        title = title.replace(' - cool18.com 书库', '')
+        title = title.replace(' - cool18.com', '')
+        title = title.replace('\\', '_')
+        title = title.replace('/', '_')
+        title = title.replace(':', '_')
+        title = title.replace('*', '_')
+        title = title.replace('?', '_')
+        title = title.replace('"', '_')
+        title = title.replace('<', '_')
+        title = title.replace('>', '_')
+        title = title.replace('|', '_')
+        title = title.replace('\t', '_')
+        title = title.replace('\r', '_')
+        title = title.replace('\n', '_')
+        title = title.strip()
+        return title
+    else:
+        return None
 
 
 def file_name(title):
@@ -98,8 +148,7 @@ def rename_and_savetext(folder, txt_name, para, url):
             elif overwrite_or_not.lower() == 'r':
                 print(f"见鬼了，这个文件名居然也存在？算了，用url来命名吧。")
                 giveup_name = url.split('tid=')[-1] + '.txt'
-                giveup_path = "".join(
-                    [folder, '\\', auto_rename_2[:-4], '_', giveup_name])
+                giveup_path = "".join([auto_rename_2[:-4], '_', giveup_name])
                 rilla_save(giveup_path, para, url)
             else:
                 print("算了，跳过不理")
@@ -134,9 +183,9 @@ def hyperlink_extractor(url, header, test='off'):
     para = soup.find('pre')
     a_para = para.find_all('a')
     for hyperlink in a_para:
-        print(hyperlink) if test == 'on' else ''  # 测试用
         if not hyperlink.get('href'):  # 当href不存在的时候，跳过
             continue  # <a target="_blank"></a>
+        print(hyperlink) if test == 'on' else ''  # 测试用
         href = hyperlink.get('href').replace(
             '&amp;', '').replace('http:', 'https:')
         if 'http' not in href:
@@ -153,15 +202,9 @@ def hyperlink_extractor(url, header, test='off'):
     for reply in li:
         bytes = reply.text.split(' bytes)')[0]
         bytes = bytes.split(' (')[-1]
-        # print(bytes)
-        # bytes = reply.text.split('bytes')[0]
-        # print(bytes)
-        # bytes = bytes.split(' ')[-2][1:]
-        # print(bytes)
 
         # 根据留言的bytes数来筛选真的补充帖子，bytes数小于600的一律不作数
-
-        if int(bytes) and int(bytes) > 6000:
+        if bytes.isdecimal() and int(bytes) > 6000:
             print(reply) if test == 'on' else ''  # 测试用
             reply = reply.find('a')  # 只选择第一个a标签获取其中的链接
             reply = reply.get('href')
@@ -185,39 +228,11 @@ def hyperlink_extractor(url, header, test='off'):
     # 对列表去重并保留原顺序
     only_postlist = []
     [only_postlist.append(i) for i in postlist if not i in only_postlist]
+
     return only_postlist
 
 
-def get_articles(url, header, test='off'):
-    '''
-    拿到所有的文章的列表
-
-    返回包含200篇文章的列表
-    '''
-    article_list = []
-    if test == 'on':
-        print("拿到所有的文章的列表")  # 测试用
-    soup = get_soup_from_webpage(url, header)
-    soup.table.decompose()  # 留园首页
-    soup.table.decompose()  # 类别 都市
-    table = soup.find('table')
-    if test == 'on':
-        print(table)  # 测试用
-    for a in table.find_all('a'):
-        href = a.get('href')
-        if test == 'on':
-            print(href)  # 测试用
-        href = href.replace('&amp;', '&')
-        if 'http' not in href:
-            url_with_https = "".join(
-                ['https://www.cool18.com/bbs4/', href])
-            article_list.append(url_with_https)
-        else:
-            article_list.append(href)
-    return article_list
-
-
-def crawl(header):
+def crawl(header, test='off'):
     failed_log_list = []
     # 生成主页地址
     article_page_url = main_page_url_generator()
@@ -230,26 +245,56 @@ def crawl(header):
         for article in article_list:
             try:
                 # 每个文章动用文章链接提取器来提取章节地址
+                if test == 'on':
+                    print('='*30)  # 测试用
+                    print(f"{article}")
+                    print('='*30)  # 测试用
                 top_soup = get_soup_from_webpage(article, header)
-                # 【欲恋】（０１－６１）作者_ 爱夜夜夜夜
                 top_title = find_title(top_soup)
+                if top_title == None:
+                    print("文章已经被删掉了，跳转去了主页")
+                    break  # 文章已经被删掉了，跳转去了主页
                 print(top_title)
-                create_folder_as_per(top_title)
+                if 'classbk' in article:
+                    para = extract_classbk(top_soup)
+                else:
+                    para = extract_text(top_soup)
                 postlist = hyperlink_extractor(article, header)
+                if para:
+                    if len(para) >= 1000 or postlist:
+                        create_folder_as_per(top_title)
+                        rename_and_savetext(
+                            top_title, top_title + '.txt', para, article)
+                else:
+                    print("空空如也，不值得保存，跳过。")
+                    break
+
                 for posturl in postlist:
+                    if 'threadview' not in posturl:
+                        continue
                     soup = get_soup_from_webpage(posturl, header)
                     page_title = find_title(soup)
-                    # 【欲恋】 (46-50)
+                    if page_title == None:
+                        print("文章已经被删掉了，跳转去了主页")
+                        break  # 文章已经被删掉了，跳转去了主页
                     print(page_title)
+                    if test == 'on':
+                        print(posturl)  # 测试用
                     txt_name = file_name(page_title)
                     if 'classbk' in posturl:
                         paragraph = extract_classbk(soup)
                     else:
                         paragraph = extract_text(soup)
-                    # 将正文保存为文本
-                    rename_and_savetext(
-                        top_title, txt_name, paragraph, posturl)
-                    # 有的王八蛋特别变态，把文本隐藏在更深的二级章节里
+
+                    if paragraph:
+                        # 将正文保存为文本
+                        rename_and_savetext(
+                            top_title, txt_name, paragraph, posturl)
+                    else:
+                        print("空空如也，跳过。")
+                        break
+
+                    # 有的王八蛋特别变态，把文本隐藏在更深的章节里
                     secondary_list = hyperlink_extractor(posturl, header)
                     if secondary_list:
                         secondary_folder_path = "".join(
@@ -257,13 +302,18 @@ def crawl(header):
                         create_folder_as_per(secondary_folder_path)
                         print(secondary_folder_path)
                         for second_level in secondary_list:
-                            if 'cool18' not in second_level:
+                            if 'threadview' not in second_level:
                                 continue
                             try:
                                 second_soup = get_soup_from_webpage(
                                     second_level, header)
                                 second_title = find_title(second_soup)
+                                if second_title == None:
+                                    print("文章已经被删掉了，跳转去了主页")
+                                    break  # 文章已经被删掉了，跳转去了主页
                                 print(second_title)
+                                if test == 'on':
+                                    print(second_level)  # 测试用
                                 second_txt_name = file_name(second_title)
                                 body_text = extract_text(second_soup)
                                 if body_text:
@@ -277,21 +327,6 @@ def crawl(header):
                 for line in failed_log_list:
                     with open('try_later.txt', 'a', encoding='utf-8') as fd:
                         fd.write(line + '\n')
-
-
-def main_page_url_generator(test='off'):
-    '''
-    翻页系统，生成留园主页第一页到第十八页的地址
-    '''
-    article_page_url = []
-    main_page = 'https://www.cool18.com/bbs4/index.php?app=forum&act=gold'  # 禁忌书屋首页
-    article_page_url.append(main_page)
-    for page in range(2, 19):
-        newpage = "".join([main_page, '&p=', str(page)])  # 第2页到第18页的地址
-        if test == 'on':
-            print(newpage)  # 测试用
-        article_page_url.append(newpage)
-    return article_page_url
 
 
 if __name__ == '__main__':
