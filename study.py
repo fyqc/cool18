@@ -251,7 +251,7 @@ def crawl(header, test='off'):
                     print('='*30)  # 测试用
                 top_soup = get_soup_from_webpage(article, header)
                 top_title = find_title(top_soup)
-                if top_title == None:
+                if top_title is None:
                     print("文章已经被删掉了，跳转去了主页")
                     break  # 文章已经被删掉了，跳转去了主页
                 print(top_title)
@@ -274,7 +274,7 @@ def crawl(header, test='off'):
                         continue
                     soup = get_soup_from_webpage(posturl, header)
                     page_title = find_title(soup)
-                    if page_title == None:
+                    if page_title is None:
                         print("文章已经被删掉了，跳转去了主页")
                         break  # 文章已经被删掉了，跳转去了主页
                     print(page_title)
@@ -308,7 +308,7 @@ def crawl(header, test='off'):
                                 second_soup = get_soup_from_webpage(
                                     second_level, header)
                                 second_title = find_title(second_soup)
-                                if second_title == None:
+                                if second_title is None:
                                     print("文章已经被删掉了，跳转去了主页")
                                     break  # 文章已经被删掉了，跳转去了主页
                                 print(second_title)
