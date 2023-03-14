@@ -13,19 +13,19 @@ HEADER = {
 SAVE_DIRECTORY = r'D:\Rilla\cool18'
 
 # when opening the vpn, call this function 
-def get_correct_proxies(): 
-    headers = getproxies(); 
-    try: 
-        if(len(headers) <= 0): 
-            return {}; 
-        if(headers.get('https') is not None): 
-            headers['https'] = headers['https'].replace('https', 'http'); 
-        return headers; 
+def get_correct_proxies():
+    headers = getproxies()
+    try:
+        if (len(headers) <= 0):
+            return {}
+        if (headers.get('https') is not None):
+            headers['https'] = headers['https'].replace('https', 'http')
+        return headers
     except Exception:
-        return {}; 
+        return {}
 
 def get_soup_from_webpage(url, header):
-    proxies = get_correct_proxies();
+    proxies = get_correct_proxies()
     response = requests.get(url, headers=header, timeout=15,proxies=proxies)
     if 'classbk' in url:
         response.encoding = 'gb2312'
