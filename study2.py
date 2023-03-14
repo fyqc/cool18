@@ -3,7 +3,7 @@
 import os
 import requests
 from bs4 import BeautifulSoup
-from urllib.request import getproxies; 
+from urllib.request import getproxies
 
 HEADER = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0)'
