@@ -3,6 +3,7 @@
 import os
 import requests
 from bs4 import BeautifulSoup
+from urllib.request import getproxies; 
 
 HEADER = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0)'
@@ -11,9 +12,21 @@ HEADER = {
 
 SAVE_DIRECTORY = r'D:\Rilla\cool18'
 
+# when opening the vpn, call this function 
+def get_correct_proxies():
+    headers = getproxies()
+    try:
+        if (len(headers) <= 0):
+            return {}
+        if (headers.get('https') is not None):
+            headers['https'] = headers['https'].replace('https', 'http')
+        return headers
+    except Exception:
+        return {}
 
 def get_soup_from_webpage(url, header):
-    response = requests.get(url, headers=header, timeout=15)
+    proxies = get_correct_proxies()
+    response = requests.get(url, headers=header, timeout=15,proxies=proxies)
     if 'classbk' in url:
         response.encoding = 'gb2312'
     else:
